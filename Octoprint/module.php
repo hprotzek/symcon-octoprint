@@ -7,8 +7,12 @@ class Octoprint extends IPSModule {
         $this->RegisterPropertyString("URL", "");
         $this->RegisterPropertyString("APIKey", "");
         $this->RegisterPropertyInteger("UpdateInterval", 1);
+        $this->RegisterPropertyBoolean("CamEnabled", false);
+        $this->RegisterPropertyBoolean("EnclosureNeopixel", false);
 
         $this->RegisterTimer("Update", $this->ReadPropertyInteger("UpdateInterval"), 'OCTO_UpdateData($_IPS[\'TARGET\']);');
+        $this->RegisterScript("NeopixelsOn", "Neopixels On", "<?php\n\nOCTO_NeopixelsOn(".$this->InstanceID.");", 0);
+        $this->RegisterScript("NeopixelsOff", "Neopixels Off", "<?php\n\nOCTO_NeopixelsOff(".$this->InstanceID.");", 0);
 
         $this->CreateVarProfile("OCTO.Size", 2, " MB", 0, 9999, 0, 1, "Database");
         $this->CreateVarProfile("OCTO.Completion", 2, " %", 0, 100, 1, 0, "Hourglass");
@@ -22,6 +26,24 @@ class Octoprint extends IPSModule {
         parent::ApplyChanges();
         if ($this->ReadPropertyString("URL") != "") {
             $this->SetTimerInterval("Update", $this->ReadPropertyInteger("UpdateInterval") * 1000 * 60);
+
+            if ($this->ReadPropertyBoolean("CamEnabled")) {
+                $url = $this->ReadPropertyString("URL");
+                $streamUrl = $url . '/webcam/?action=stream';
+                $media = @IPS_GetMediaIDByName("Cam Stream", $this->InstanceID);
+                if (!$media) {
+                    $media = IPS_CreateMedia(3);
+                    IPS_SetIdent($media, "CamStream");
+                    IPS_SetName($media, "Cam Stream");
+                    IPS_SetMediaFile($media, $streamUrl, true);
+                    IPS_SetParent($media, $this->InstanceID);
+                } else {
+                    if (md5(IPS_GetMedia($media)['MediaFile']) != md5($streamUrl)) {
+                        IPS_SetMediaFile($media, $streamUrl, true);
+                    }
+                }
+            }
+
             $this->SetStatus(102);
         } else {
             $this->SetStatus(104);
@@ -60,6 +82,20 @@ class Octoprint extends IPSModule {
         SetValue($this->GetIDForIdent("PrintTimeLeft"), $this->CreateDuration($data->progress->printTimeLeft));
         SetValue($this->GetIDForIdent("ProgressCompletion"), $this->FixupInvalidValue($data->progress->completion));
         SetValue($this->GetIDForIdent("PrintFinished"), $this->CreatePrintFinished($data->progress->printTimeLeft));
+    }
+
+    public function NeopixelsOff() {
+        if ($this->ReadPropertyBoolean("EnclosureNeopixel")) {
+            $url = $this->ReadPropertyString("URL");
+            $this->httpGet($url . "/plugin/enclosure/setNeopixel?index_id=1&red=0&green=0&blue=0");
+        }
+    }
+
+    public function NeopixelsOn() {
+        if ($this->ReadPropertyBoolean("EnclosureNeopixel")) {
+            $url = $this->ReadPropertyString("URL");
+            $this->httpGet($url . "/plugin/enclosure/setNeopixel?index_id=1&red=255&green=255&blue=255");
+        }
     }
 
     private function RequestAPI($path) {
@@ -114,5 +150,13 @@ class Octoprint extends IPSModule {
         } else {
             return "Calculating ...";
         }
+    }
+
+    private function httpGet($url) {
+        $handle = curl_init();
+        curl_setopt($handle, CURLOPT_URL, $url);
+        curl_setopt($handle, CURLOPT_TIMEOUT, 1000);
+        $data = curl_exec($handle);
+        curl_close($handle);
     }
 }

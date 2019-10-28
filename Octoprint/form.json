@@ -4,7 +4,9 @@
         { "type": "ValidationTextBox", "name": "URL", "caption": "Url to Octoprint, e.g. https://192.168.0.179" },
         { "type": "ValidationTextBox", "name": "APIKey", "caption": "API Key" },
         { "type": "Label", "label": "Update data every X minutes" },
-        { "type": "IntervalBox", "name": "UpdateInterval", "caption": "Minutes" }
+        { "type": "IntervalBox", "name": "UpdateInterval", "caption": "Minutes" },
+        { "type": "CheckBox", "name": "CamEnabled", "caption": "Enable Octoprint Cam" },
+        { "type": "CheckBox", "name": "EnclosureNeopixel", "caption": "Allow switching Neopixel from enclosure plugin" }
     ],
     "actions":
     [
