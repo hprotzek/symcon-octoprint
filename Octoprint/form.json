@@ -1,0 +1,18 @@
+{
+    "elements":
+    [
+        { "type": "ValidationTextBox", "name": "URL", "caption": "Url to Octoprint, e.g. https://192.168.0.179" },
+        { "type": "ValidationTextBox", "name": "APIKey", "caption": "API Key" },
+        { "type": "Label", "label": "Update data every X minutes" },
+        { "type": "IntervalBox", "name": "UpdateInterval", "caption": "Minutes" }
+    ],
+    "actions":
+    [
+        { "type": "Button", "label": "Update", "onClick": "OCTO_UpdateData($id);" }
+    ],
+    "status":
+    [
+        { "code": 102, "icon": "active", "caption": "Instance is active!" },
+        { "code": 104, "icon": "inactive", "caption": "Instance is inactive!" }
+    ]
+}

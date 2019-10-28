@@ -1,0 +1,12 @@
+{
+    "id": "{CA32ADC4-D821-5FF5-075B-8FFFE3AEA380}",
+    "author": "Holger Protzek",
+    "name": "Octoprint",
+    "url": "",
+    "compatibility": {
+        "version": "5.2"
+    },
+    "version": "1.0",
+    "build": 0,
+    "date": 0
+}
