@@ -11,8 +11,8 @@ class Octoprint extends IPSModule {
         $this->RegisterPropertyBoolean("EnclosureNeopixel", false);
 
         $this->RegisterTimer("Update", $this->ReadPropertyInteger("UpdateInterval"), 'OCTO_UpdateData($_IPS[\'TARGET\']);');
-        $this->RegisterScript("NeopixelsOn", "Neopixels On", "<?php\n\nOCTO_NeopixelsOn(".$this->InstanceID.");", 0);
-        $this->RegisterScript("NeopixelsOff", "Neopixels Off", "<?php\n\nOCTO_NeopixelsOff(".$this->InstanceID.");", 0);
+        $this->RegisterScript("NeopixelsOn", "Neopixels On", "<?php\n\nOCTO_LightsOn(".$this->InstanceID.");", 0);
+        $this->RegisterScript("NeopixelsOff", "Neopixels Off", "<?php\n\nOCTO_LightsOff(".$this->InstanceID.");", 0);
 
         $this->CreateVarProfile("OCTO.Size", 2, " MB", 0, 9999, 0, 1, "Database");
         $this->CreateVarProfile("OCTO.Completion", 2, " %", 0, 100, 1, 0, "Hourglass");
@@ -84,14 +84,14 @@ class Octoprint extends IPSModule {
         SetValue($this->GetIDForIdent("PrintFinished"), $this->CreatePrintFinished($data->progress->printTimeLeft));
     }
 
-    public function NeopixelsOff() {
+    public function LightsOff() {
         if ($this->ReadPropertyBoolean("EnclosureNeopixel")) {
             $url = $this->ReadPropertyString("URL");
             $this->httpGet($url . "/plugin/enclosure/setNeopixel?index_id=1&red=0&green=0&blue=0");
         }
     }
 
-    public function NeopixelsOn() {
+    public function LightsOn() {
         if ($this->ReadPropertyBoolean("EnclosureNeopixel")) {
             $url = $this->ReadPropertyString("URL");
             $this->httpGet($url . "/plugin/enclosure/setNeopixel?index_id=1&red=255&green=255&blue=255");
