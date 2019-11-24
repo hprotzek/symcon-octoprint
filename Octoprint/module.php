@@ -1,34 +1,33 @@
 <?php
 
+require_once __DIR__ . '/../libs/Ping.php';
+
 class Octoprint extends IPSModule {
 
     public function Create() {
         parent::Create();
-        $this->RegisterPropertyString("URL", "");
+        $this->RegisterPropertyString("Scheme", "http");
+        $this->RegisterPropertyString("Host", "");
         $this->RegisterPropertyString("APIKey", "");
         $this->RegisterPropertyInteger("UpdateInterval", 1);
         $this->RegisterPropertyBoolean("CamEnabled", false);
         $this->RegisterPropertyBoolean("EnclosureNeopixel", false);
 
         $this->RegisterTimer("Update", $this->ReadPropertyInteger("UpdateInterval"), 'OCTO_UpdateData($_IPS[\'TARGET\']);');
-        $this->RegisterScript("NeopixelsOn", "Neopixels On", "<?php\n\nOCTO_LightsOn(".$this->InstanceID.");", 0);
-        $this->RegisterScript("NeopixelsOff", "Neopixels Off", "<?php\n\nOCTO_LightsOff(".$this->InstanceID.");", 0);
+        $this->RegisterScript("NeopixelsOn", "Neopixels On", "<?php\n\nOCTO_LightsOn(" . $this->InstanceID . ");", 0);
+        $this->RegisterScript("NeopixelsOff", "Neopixels Off", "<?php\n\nOCTO_LightsOff(" . $this->InstanceID . ");", 0);
 
         $this->CreateVarProfile("OCTO.Size", 2, " MB", 0, 9999, 0, 1, "Database");
         $this->CreateVarProfile("OCTO.Completion", 2, " %", 0, 100, 1, 0, "Hourglass");
     }
 
-    public function Destroy() {
-        parent::Destroy();
-    }
-
     public function ApplyChanges() {
         parent::ApplyChanges();
-        if ($this->ReadPropertyString("URL") != "") {
+        if ($this->ReadPropertyString("Host") != "") {
             $this->SetTimerInterval("Update", $this->ReadPropertyInteger("UpdateInterval") * 1000 * 60);
 
             if ($this->ReadPropertyBoolean("CamEnabled")) {
-                $url = $this->ReadPropertyString("URL");
+                $url = $this->ReadPropertyString("Scheme") . '://' . $this->ReadPropertyString("Host");
                 $streamUrl = $url . '/webcam/?action=stream';
                 $media = @IPS_GetMediaIDByName("Cam Stream", $this->InstanceID);
                 if (!$media) {
@@ -66,6 +65,12 @@ class Octoprint extends IPSModule {
     }
 
     public function UpdateData() {
+        $ping = new Ping($this->ReadPropertyString("Host"));
+        if ($ping->ping() == false) {
+            $this->SendDebug(__FUNCTION__, 'Octoprint is offline', 0);
+            return;
+        }
+
         $data = $this->RequestAPI('/api/connection');
         SetValue($this->GetIDForIdent("Status"), $data->current->state);
 
@@ -86,20 +91,20 @@ class Octoprint extends IPSModule {
 
     public function LightsOff() {
         if ($this->ReadPropertyBoolean("EnclosureNeopixel")) {
-            $url = $this->ReadPropertyString("URL");
+            $url = $this->ReadPropertyString("Scheme") . '://' . $this->ReadPropertyString("Host");
             $this->httpGet($url . "/plugin/enclosure/setNeopixel?index_id=1&red=0&green=0&blue=0");
         }
     }
 
     public function LightsOn() {
         if ($this->ReadPropertyBoolean("EnclosureNeopixel")) {
-            $url = $this->ReadPropertyString("URL");
+            $url = $this->ReadPropertyString("Scheme") . '://' . $this->ReadPropertyString("Host");
             $this->httpGet($url . "/plugin/enclosure/setNeopixel?index_id=1&red=255&green=255&blue=255");
         }
     }
 
     private function RequestAPI($path) {
-        $url = $this->ReadPropertyString("URL");
+        $url = $this->ReadPropertyString("Scheme") . '://' . $this->ReadPropertyString("Host");
         $apiKey = $this->ReadPropertyString("APIKey");
 
         $this->SendDebug("OCTO Requested URL", $url, 0);

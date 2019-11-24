@@ -1,7 +1,8 @@
 {
     "elements":
     [
-        { "type": "ValidationTextBox", "name": "URL", "caption": "Url to Octoprint, e.g. https://192.168.0.179" },
+        { "type": "ValidationTextBox", "name": "Scheme", "caption": "http/https" },
+        { "type": "ValidationTextBox", "name": "Host", "caption": "Host of Octoprint, e.g. 192.168.0.179" },
         { "type": "ValidationTextBox", "name": "APIKey", "caption": "API Key" },
         { "type": "Label", "label": "Update data every X minutes" },
         { "type": "IntervalBox", "name": "UpdateInterval", "caption": "Minutes" },
