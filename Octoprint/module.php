@@ -67,6 +67,8 @@ class Octoprint extends IPSModule {
     public function UpdateData() {
         $ping = new Ping($this->ReadPropertyString("Host"));
         if ($ping->ping() == false) {
+            SetValue($this->GetIDForIdent("Status"), "Offline");
+            SetValue($this->GetIDForIdent("ProgressCompletion"), 0);
             $this->SendDebug(__FUNCTION__, 'Octoprint is offline', 0);
             return;
         }
@@ -91,15 +93,13 @@ class Octoprint extends IPSModule {
 
     public function LightsOff() {
         if ($this->ReadPropertyBoolean("EnclosureNeopixel")) {
-            $url = $this->ReadPropertyString("Scheme") . '://' . $this->ReadPropertyString("Host");
-            $this->httpGet($url . "/plugin/enclosure/setNeopixel?index_id=1&red=0&green=0&blue=0");
+            $this->RequestAPI("/plugin/enclosure/setNeopixel?index_id=2&red=0&green=0&blue=0");
         }
     }
 
     public function LightsOn() {
         if ($this->ReadPropertyBoolean("EnclosureNeopixel")) {
-            $url = $this->ReadPropertyString("Scheme") . '://' . $this->ReadPropertyString("Host");
-            $this->httpGet($url . "/plugin/enclosure/setNeopixel?index_id=1&red=255&green=255&blue=255");
+            $this->RequestAPI("/plugin/enclosure/setNeopixel?index_id=2&red=255&green=255&blue=255");
         }
     }
 
@@ -107,10 +107,10 @@ class Octoprint extends IPSModule {
         $url = $this->ReadPropertyString("Scheme") . '://' . $this->ReadPropertyString("Host");
         $apiKey = $this->ReadPropertyString("APIKey");
 
-        $this->SendDebug("OCTO Requested URL", $url, 0);
         $headers = array(
-            'X-Api-Key: ' . $apiKey
+            'X-Api-Key:' . $apiKey
         );
+        $this->SendDebug("OCTO Requested URL", $url . $path, 0);
         $ch = curl_init($url . $path);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
